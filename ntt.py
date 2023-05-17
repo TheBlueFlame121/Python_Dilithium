@@ -3,7 +3,7 @@
 from params import *
 from reduce import *
 
-zetas[N] = [
+zetas = [
          0,    25847, -2608894,  -518909,   237124,  -777960,  -876248,   466468,
    1826347,  2353451,  -359251, -2091905,  3119733, -2884855,  3111497,  2680103,
    2725464,  1024112, -1079900,  3585928,  -549488, -1119584,  2619752, -2108549,
@@ -54,12 +54,12 @@ def ntt(a:List[int]) -> List[int]:
         start = 0
         while start < N:
             k += 1
-            zeta = zeta[k]
+            zeta = zetas[k]
             for j in range(start, start+l):
                 t = montgomery_reduce(zeta * a[j+l])
                 a[j+l] = a[j] - t
                 a[j] = a[j] + t
-            start = j + l
+            start = j + l + 1
         l >>= 1
     return a
 
@@ -84,13 +84,13 @@ def invntt_tomont(a: List[int]) -> List[int]:
         start = 0
         while start < N:
             k -= 1
-            zetas = -zeta[k]
+            zeta = -zetas[k]
             for j in range(start, start + l):
                 t = a[j]
                 a[j] = t + a[j+l]
                 a[j+l] = t - a[j+l]
                 a[j+l] = montgomery_reduce(zeta*a[j+l])
-            start = j + l
+            start = j + l + 1
         l <<= 1
     for j in range(0, N):
         a[j] = montgomery_reduce(f*a[j])
