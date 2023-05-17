@@ -3,6 +3,11 @@
 
 from Crypto.Hash import SHAKE128, SHAKE256, SHA3_256, SHA3_512
 
+SHAKE128_RATE = 168
+SHAKE256_RATE = 136
+SHA3_256_RATE = 136
+SHA3_512_RATE = 72
+
 
 #################################################
 # Name:        shake128

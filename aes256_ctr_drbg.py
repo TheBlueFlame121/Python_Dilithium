@@ -6,6 +6,8 @@ This implementation of AES256_CTR_DRBG is taken directly from https://github.com
 import os
 from Crypto.Cipher import AES
 
+AES256CTR_BLOCKBYTES = 64
+
 def xor_bytes(a, b):
     """
     XOR two byte arrays, assume that they are 
