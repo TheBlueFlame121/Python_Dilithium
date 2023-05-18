@@ -10,6 +10,23 @@ SHA3_512_RATE = 72
 
 
 #################################################
+# Name:        shake128_squeezeblocks
+#
+# Description: Squeeze step of SHAKE128 XOF. Squeezes full blocks of
+#              SHAKE256_RATE bytes each. Can be called multiple times
+#              to keep squeezing. Assumes next block has not yet been
+#              started (state->pos = SHAKE256_RATE).
+#
+# Arguments:   - state: SHAKE128_XOF object
+#              - int nblocks: requested number of blocks
+#
+# Returns the output of the XOF
+##################################################
+def shake128_squeezeblocks(state:Crypto.Hash.SHAKE128.SHAKE128_XOF, nblocks:int):
+    return state.read(nblocks*SHAKE128_RATE)
+
+
+#################################################
 # Name:        shake128
 #
 # Description: SHAKE128 XOF with non-incremental API
@@ -23,6 +40,23 @@ def shake128(input:bytes, output_len: int) -> bytes:
     temp = SHAKE128.new()
     temp.update(input)
     return temp.read(output_len)
+
+
+#################################################
+# Name:        shake256_squeezeblocks
+#
+# Description: Squeeze step of SHAKE256 XOF. Squeezes full blocks of
+#              SHAKE256_RATE bytes each. Can be called multiple times
+#              to keep squeezing. Assumes next block has not yet been
+#              started (state->pos = SHAKE256_RATE).
+#
+# Arguments:   - state: SHAKE256_XOF object
+#              - int nblocks: requested number of blocks
+#
+# Returns the output of the XOF
+##################################################
+def shake256_squeezeblocks(state:Crypto.Hash.SHAKE256.SHAKE256_XOF, nblocks:int):
+    return state.read(nblocks*SHAKE256_RATE)
 
 
 #################################################
