@@ -22,8 +22,8 @@ SHA3_512_RATE = 72
 #
 # Returns the output of the XOF
 ##################################################
-def shake128_squeezeblocks(nblocks:int, state:Crypto.Hash.SHAKE128.SHAKE128_XOF):
-    return state.read(nblocks*SHAKE128_RATE)
+def shake128_squeezeblocks(nblocks:int, state:Crypto.Hash.SHAKE128.SHAKE128_XOF) -> List[int]:
+    return list(state.read(nblocks*SHAKE128_RATE))
 
 
 #################################################
@@ -55,8 +55,8 @@ def shake128(input:bytes, output_len: int) -> bytes:
 #
 # Returns the output of the XOF
 ##################################################
-def shake256_squeezeblocks(nblocks:int, state:Crypto.Hash.SHAKE256.SHAKE256_XOF):
-    return state.read(nblocks*SHAKE256_RATE)
+def shake256_squeezeblocks(nblocks:int, state:Crypto.Hash.SHAKE256.SHAKE256_XOF) -> List[int]:
+    return list(state.read(nblocks*SHAKE256_RATE))
 
 
 #################################################
