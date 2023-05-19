@@ -2,6 +2,7 @@
 # Instead of implementing Keccak from scratch, a library is used
 
 from Crypto.Hash import SHAKE128, SHAKE256, SHA3_256, SHA3_512
+from typing import List
 
 SHAKE128_RATE = 168
 SHAKE256_RATE = 136
@@ -22,7 +23,7 @@ SHA3_512_RATE = 72
 #
 # Returns the output of the XOF
 ##################################################
-def shake128_squeezeblocks(nblocks:int, state:Crypto.Hash.SHAKE128.SHAKE128_XOF) -> List[int]:
+def shake128_squeezeblocks(nblocks:int, state:SHAKE128.SHAKE128_XOF) -> List[int]:
     return list(state.read(nblocks*SHAKE128_RATE))
 
 
@@ -55,7 +56,7 @@ def shake128(input:bytes, output_len: int) -> bytes:
 #
 # Returns the output of the XOF
 ##################################################
-def shake256_squeezeblocks(nblocks:int, state:Crypto.Hash.SHAKE256.SHAKE256_XOF) -> List[int]:
+def shake256_squeezeblocks(nblocks:int, state:SHAKE256.SHAKE256_XOF) -> List[int]:
     return list(state.read(nblocks*SHAKE256_RATE))
 
 

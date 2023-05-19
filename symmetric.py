@@ -9,12 +9,12 @@ stream128_state = SHAKE128.new
 stream256_state = SHAKE256.new
 
 
-def shake128_stream_init(state: Crypto.Hash.SHAKE128.SHAKE128_XOF, seed: bytes, nonce: int):
+def shake128_stream_init(state: SHAKE128.SHAKE128_XOF, seed: bytes, nonce: int):
     state.update(seed)
     state.update(nonce.to_bytes(2, 'little'))
 
 
-def shake256_stream_init(state: Crypto.Hash.SHAKE256.SHAKE256_XOF, seed: bytes, nonce: int):
+def shake256_stream_init(state: SHAKE256.SHAKE256_XOF, seed: bytes, nonce: int):
     state.update(seed)
     state.update(nonce.to_bytes(2, 'little'))
 
