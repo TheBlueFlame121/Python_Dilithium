@@ -267,7 +267,7 @@ def rej_uniform(a:List[int], l:int, buf: List[int], buflen:int) -> int:
 #              - List[int] seed: byte array with seed of length SEEDBYTES
 #              - int nonce: 2-byte nonce
 ##################################################
-POLY_UNIFORM_NBLOCKS = ((768 + STREAM128_BLOCKBYTES - 1)/STREAM128_BLOCKBYTES)
+POLY_UNIFORM_NBLOCKS = ((768 + STREAM128_BLOCKBYTES - 1)//STREAM128_BLOCKBYTES)
 def poly_uniform(a: poly, seed: bytes, nonce: int):
     buflen = POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES
     buf = [0]*(POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES + 2)
@@ -341,9 +341,9 @@ def rej_eta(a:List[int], l:int, buf:List[int], buflen:int) -> int:
 #              - int nonce: 2-byte nonce
 ##################################################
 if ETA == 2:
-    POLY_UNIFORM_ETA_NBLOCKS = ((136 + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
+    POLY_UNIFORM_ETA_NBLOCKS = ((136 + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
 elif ETA == 4:
-    POLY_UNIFORM_ETA_NBLOCKS = ((227 + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
+    POLY_UNIFORM_ETA_NBLOCKS = ((227 + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
 def poly_uniform_eta(a:poly, seed:List[int], nonce:int):
     buflen = POLY_UNIFORM_ETA_NBLOCKS*STREAM256_BLOCKBYTES
     buf = [0]*(POLY_UNIFORM_ETA_NBLOCKS*STREAM256_BLOCKBYTES)
@@ -370,7 +370,7 @@ def poly_uniform_eta(a:poly, seed:List[int], nonce:int):
 #              - List[int] seed: byte array with seed of length CRHBYTES
 #              - int nonce: 16-bit nonce
 ##################################################
-POLY_UNIFORM_GAMMA1_NBLOCKS = ((POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
+POLY_UNIFORM_GAMMA1_NBLOCKS = ((POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
 def poly_uniform_gamma1(a:poly, seed:List[int], nonce:int):
     buf = [0]*(POLY_UNIFORM_GAMMA1_NBLOCKS*STREAM256_BLOCKBYTES)
     state = stream256_state()
