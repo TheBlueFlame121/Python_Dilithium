@@ -1,3 +1,4 @@
+# Contains elements from poly.h and poly.c
 from dataclasses import dataclass
 from params import *
 from ntt import *
@@ -6,15 +7,16 @@ from rounding import *
 from symmetric import *
 
 
-@dataclass
 class poly:
     coeffs: List[int]
 
-    def __init__(self, inp: List[int] = [0]*N):
+    def __init__(self, inp: list[int] = None):
+        if inp is None:
+            inp = [0 for _ in range(N)]
         if len(inp) > N:
             raise ValueError("Polynomial can't have more than N coeffs")
         if len(inp) < N:
-            inp = [0]*(N-len(inp)) + inp
+            inp = inp + [0 for _ in range(N-len(inp))].copy()
         self.coeffs = inp
 
 
