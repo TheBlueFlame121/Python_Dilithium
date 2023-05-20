@@ -19,6 +19,9 @@ QINV = 58728449 # q^(-1) mod 2^32
 def montgomery_reduce(a:int) -> int:
     t = (a*QINV)%(2**32)
     t = (a - t*Q) >> 32
+    t += Q
+    if t > (Q>>1):
+        t -= Q
     return t
 
 
