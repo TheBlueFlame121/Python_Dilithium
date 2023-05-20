@@ -6,13 +6,26 @@ from poly import *
 class polyvecl:
     vec: List[poly]
 
-    def __init__(self, inp: list[int] = None):
+    def __init__(self, inp: list[poly] = None):
         if inp is None:
             inp = [poly() for _ in range(L)]
         if len(inp) > L:
             raise ValueError("Polynomial Vector L can't have more than L polys")
         if len(inp) < L:
             inp = inp + [poly() for _ in range(L-len(inp))].copy()
+        self.vec = inp
+
+
+class polyveck:
+    vec: List[poly]
+
+    def __init__(self, inp: list[poly] = None):
+        if inp is None:
+            inp = [poly() for _ in range(K)]
+        if len(inp) > K:
+            raise ValueError("Polynomial Vector K can't have more than K polys")
+        if len(inp) < K:
+            inp = inp + [poly() for _ in range(K-len(inp))].copy()
         self.vec = inp
 
 #################################################
@@ -29,7 +42,7 @@ class polyvecl:
 def polyvec_matrix_expand(mat: List[polyvecl], rho: List[int]):
     for i in range(K):
         for j in range(L):
-            poly_uniform(mat[i].vec[j], rho, (i<<8) + j)
+            poly_uniform(mat[i].vec[j], bytes(rho), (i<<8) + j)
 
 
 def polyvec_matrix_pointwise_montgomery(t:polyveck, mat:List[polyvecl], v:polyvecl):
@@ -147,18 +160,6 @@ def polyvecl_chknorm(v:polyvecl, bound:int) -> int:
 ############ Vectors of polynomials of length K ##############
 ##############################################################
 
-class polyveck:
-    vec: List[poly]
-
-    def __init__(self, inp: list[int] = None):
-        if inp is None:
-            inp = [poly() for _ in range(K)]
-        if len(inp) > K:
-            raise ValueError("Polynomial Vector K can't have more than K polys")
-        if len(inp) < K:
-            inp = inp + [poly() for _ in range(K-len(inp))].copy()
-        self.vec = inp
-
 
 def polyveck_uniform_eta(v:polyveck, seed:List[int], nonce:int):
     for i in range(K):
@@ -263,7 +264,7 @@ def polyveck_invntt_tomont(v:polyveck):
         poly_invntt_tomont(v.vec[i])
 
 
-def polyveck_pointwise_poly_montgomery(r:polyveck, poly:a, polyveck:v):
+def polyveck_pointwise_poly_montgomery(r:polyveck, a:poly, v:polyveck):
     for i in range(K):
         poly_pointwise_montgomery(r.vec[i], a, v.vec[i])
 
