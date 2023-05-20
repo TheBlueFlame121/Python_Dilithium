@@ -132,7 +132,7 @@ def polyvecl_pointwise_acc_montgomery(w:poly, u:polyvecl, v:polyvecl):
     t = poly()
     poly_pointwise_montgomery(w, u.vec[0], v.vec[0])
     for i in range(1, L):
-        poly_pointwise_montgomery(t, u.vec[0], v.vec[0])
+        poly_pointwise_montgomery(t, u.vec[i], v.vec[i])
         poly_add(w, w, t)
 
 
