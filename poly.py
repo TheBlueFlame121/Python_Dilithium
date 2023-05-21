@@ -353,7 +353,7 @@ def poly_uniform_eta(a:poly, seed:List[int], nonce:int):
     buf = [0]*(POLY_UNIFORM_ETA_NBLOCKS*STREAM256_BLOCKBYTES)
     state = stream256_state()
 
-    stream256_init(state, seed, nonce)
+    stream256_init(state, bytes(seed), nonce)
     buf = stream256_squeezeblocks(POLY_UNIFORM_ETA_NBLOCKS, state)
 
     ctr = rej_eta(a.coeffs, N, buf, buflen)
@@ -383,7 +383,7 @@ def poly_uniform_gamma1(a:poly, seed:List[int], nonce:int):
     buf = [0]*(POLY_UNIFORM_GAMMA1_NBLOCKS*STREAM256_BLOCKBYTES)
     state = stream256_state()
 
-    stream256_init(state, seed, nonce)
+    stream256_init(state, bytes(seed), nonce)
     buf = stream256_squeezeblocks(POLY_UNIFORM_GAMMA1_NBLOCKS, state)
     polyz_unpack(a, buf)
 
@@ -402,7 +402,7 @@ def poly_challenge(c:poly, seed:List[int]):
     buf = [0]*SHAKE256_RATE
     state = SHAKE256.new()
 
-    state.update(seed)
+    state.update(bytes(seed))
     buf = shake256_squeezeblocks(1, state)
 
     signs = 0
@@ -413,7 +413,7 @@ def poly_challenge(c:poly, seed:List[int]):
     for i in range(N):
         c.coeffs[i] = 0
     for i in range(N-TAU, N):
-        temp = 1 # To simulate a do while loop
+        temp = 1; b = 0 # To simulate a do while loop
         while temp == 1 or b > i:
             temp = 0
             if pos >= SHAKE256_RATE:
