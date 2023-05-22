@@ -72,11 +72,11 @@ def crypto_sign_keypair(pk:List[int], sk:List[int]) -> int:
 #
 # Description: Computes signature.
 #
-# Arguments:   - List[int] sig:   pointer to output signature (of length CRYPTO_BYTES)
-#              - int siglen:      pointer to output length of signature (UNUSED)
-#              - List[int] m:     pointer to message to be signed
+# Arguments:   - List[int] sig:   output signature (of length CRYPTO_BYTES)
+#              - int siglen:      output length of signature (UNUSED)
+#              - List[int] m:     message to be signed
 #              - int mlen:        length of message (UNUSED)
-#              - List[int] sk:    pointer to bit-packed secret key
+#              - List[int] sk:    bit-packed secret key
 #
 # Returns 0 (success)
 ##################################################
@@ -175,4 +175,27 @@ def crypto_sign_signature(sig:List[int], siglen:int, m:List[int], mlen:int, sk:L
         pack_sig(sig, sig, z, h)
 
         break
+    return 0
+
+
+#################################################
+# Name:        crypto_sign
+#
+# Description: Compute signed message.
+#
+# Arguments:   - List[int] sm: output signed message (allocated
+#                              array with CRYPTO_BYTES + mlen bytes),
+#                              can be equal to m
+#              - int smlen:    output length of signed
+#                              message (UNUSED)
+#              - List[int] m:  message to be signed
+#              - int mlen:     length of message (UNUSED)
+#              - List[int] sk: bit-packed secret key
+#
+# Returns 0 (success)
+##################################################
+def crypto_sign(sm:List[int], smlen:int, m:List[int], mlen:int, sk:List[int]) -> int:
+    for i in range(len(m)):
+        sm[CRYPTO_BYTES + len(m) - 1 -i] = m[len(m) - 1 - i]
+    crypto_sign_signature(sm, smlen, m, mlen, sk)
     return 0
