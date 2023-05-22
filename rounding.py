@@ -43,7 +43,7 @@ def decompose(a: int) -> (int, int):
         a1 ^= ((43 - a1) >> 31) & a1
 
     a0 = a - a1*2*GAMMA2;
-    a0 -= (((Q-1)/2 - a0) >> 31) & Q
+    a0 -= (((Q-1)//2 - a0) >> 31) & Q
 
     return a0, a1
 
