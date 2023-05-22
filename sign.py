@@ -65,3 +65,114 @@ def crypto_sign_keypair(pk:List[int], sk:List[int]) -> int:
     pack_sk(sk, rho, tr, key, t0, s1, s2)
 
     return 0
+
+
+#################################################
+# Name:        crypto_sign_signature
+#
+# Description: Computes signature.
+#
+# Arguments:   - uint8_t *sig:   pointer to output signature (of length CRYPTO_BYTES)
+#              - size_t *siglen: pointer to output length of signature
+#              - uint8_t *m:     pointer to message to be signed
+#              - size_t mlen:    length of message
+#              - uint8_t *sk:    pointer to bit-packed secret key
+#
+# Returns 0 (success)
+##################################################
+def crypto_sign_signature(sig:List[int], siglen:int, m:List[int], mlen:int, sk:List[int]) -> int:
+    # seedbuf = [0]*(3*SEEDBYTES + 2*CRHBYTES)
+    rho, tr, key = ([0]*SEEDBYTES for _ in range(3))
+    # mu, rhoprime = ([0]*CRHBYTES for _ in range(2))
+
+    nonce = 0
+    mat = [polyvecl() for _ in range(K)]
+    s1 = polyvecl()
+    y = polyvecl()
+    z = polyvecl()
+    t0 = polyveck()
+    s2 = polyveck()
+    w1 = polyveck()
+    w0 = polyveck()
+    h = polyveck()
+    cp = poly()
+    # state = stream256_state()
+
+    unpack_sk(rho, tr, key, t0, s1, s2, sk)
+
+    # Compute CRH(tr, msg)
+    state = stream256_state()
+    state.update(bytes(tr))
+    state.update(bytes(m))
+    mu = list(state.read(CRHBYTES))
+
+    rhoprime = list(shake256(bytes(key+mu), CRHBYTES))
+
+    # Expand matrix and transform vectors
+    polyvec_matrix_expand(mat, rho)
+    polyvecl_ntt(s1)
+    polyveck_ntt(s2)
+    polyveck_ntt(t0)
+
+    while True:
+        # Sample intermediate vector y
+        polyvecl_uniform_gamma1(y, rhoprime, nonce)
+        nonce += 1
+
+        # Matrix-vector multiplication
+        for i in range(L):
+            for j in range(N):
+                z.vec[i].coeffs[j] = y.vec[i].coeffs[j]
+        polyvecl_ntt(z)
+        polyvec_matrix_pointwise_montgomery(w1, mat, z)
+        polyveck_reduce(w1)
+        polyveck_invntt_tomont(w1)
+
+        # Decompose w and call the random oracle
+        polyveck_caddq(w1)
+        polyveck_decompose(w1, w0, w1)
+        polyveck_pack_w1(sig, w1)
+
+        state = stream256_state()
+        state.update(bytes(mu))
+        state.update(bytes(sig[:K*POLYW1_PACKEDBYTES]))
+        temp = list(state.read(SEEDBYTES))
+        for i in range(SEEDBYTES):
+            sig[i] = temp[i]
+        poly_challenge(cp, sig[:SEEDBYTES])
+        poly_ntt(cp)
+
+        # Compute z, reject if it reveals secret
+        polyvecl_pointwise_poly_montgomery(z, cp, s1)
+        polyvecl_invntt_tomont(z)
+        polyvecl_add(z, z, y)
+        polyvecl_reduce(z)
+        if polyvecl_chknorm(z, GAMMA1-BETA):
+            continue
+
+        # Check that subtracting cs2 does not change high bits of w and low bits
+        # do not reveal secret information
+        polyveck_pointwise_poly_montgomery(h, cp, s2)
+        polyveck_invntt_tomont(h)
+        polyveck_sub(w0, w0, h)
+        polyveck_reduce(w0)
+        if polyveck_chknorm(w0, GAMMA2 - BETA):
+            continue
+
+        # Compute hints for w1
+        polyveck_pointwise_poly_montgomery(h, cp, t0)
+        polyveck_invntt_tomont(h)
+        polyveck_reduce(h)
+        if polyveck_chknorm(h, GAMMA2):
+            continue
+
+        polyveck_add(w0, w0, h)
+        n = polyveck_make_hint(h, w0, w1)
+        if n > OMEGA:
+            continue
+
+        # Write signature
+        pack_sig(sig, sig, z, h)
+
+        break
+    return 0
