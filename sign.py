@@ -199,3 +199,79 @@ def crypto_sign(sm:List[int], smlen:int, m:List[int], mlen:int, sk:List[int]) ->
         sm[CRYPTO_BYTES + len(m) - 1 -i] = m[len(m) - 1 - i]
     crypto_sign_signature(sm, smlen, m, mlen, sk)
     return 0
+
+
+#################################################
+# Name:        crypto_sign_verify
+#
+# Description: Verifies signature.
+#
+# Arguments:   - List[int] sig: input signature
+#              - int siglen:    length of signature (UNUSED)
+#              - List[int] m:   message
+#              - int mlen:      length of message (UNUSED)
+#              - List[int] pk:  bit-packed public key
+#
+# Returns 0 if signature could be verified correctly and -1 otherwise
+##################################################
+def crypto_sign_verify(sig: List[int], siglen:int, m:List[int], mlen:int, pk:List[int]) -> int:
+    buf = [0]*(K*POLYW1_PACKEDBYTES)
+    rho = [0]*SEEDBYTES
+    # mu = [0]*CRHBYTES
+    c = [0]*SEEDBYTES
+    # c2 = [0]*SEEDBYTES
+    cp = poly()
+    mat = [polyvecl() for _ in range(K)]
+    z = polyvecl()
+    t1 = polyveck()
+    w1 = polyveck()
+    h = polyveck()
+    # state = stream256_state()
+
+    if len(sig) != CRYPTO_BYTES:
+        return -1
+
+    unpack_pk(rho, t1, pk)
+    if unpack_sig(c, z, h, sig):
+        return -1
+    if polyvecl_chknorm(z, GAMMA1 - BETA):
+        return -1
+
+    # Compute CRH(H(rho, t1), msg)
+    mu = list(shake256(bytes(pk), SEEDBYTES))
+    state = stream256_state()
+    state.update(bytes(mu))
+    state.update(bytes(m))
+    mu = list(state.read(CRHBYTES))
+
+    # Matrix-vector multiplication; compute Az - c2^dt1
+    poly_challenge(cp, c)
+    polyvec_matrix_expand(mat, rho)
+
+    polyvecl_ntt(z)
+    polyvec_matrix_pointwise_montgomery(w1, mat, z)
+
+    poly_ntt(cp)
+    polyveck_shiftl(t1)
+    polyveck_ntt(t1)
+    polyveck_pointwise_poly_montgomery(t1, cp, t1)
+
+    polyveck_sub(w1, w1, t1)
+    polyveck_reduce(w1)
+    polyveck_invntt_tomont(w1)
+
+    # Reconstruct w1
+    polyveck_caddq(w1)
+    polyveck_use_hint(w1, w1, h)
+    polyveck_pack_w1(buf, w1)
+
+    # Call random oracle and verify challenge
+    state = stream256_state()
+    state.update(bytes(mu))
+    state.update(bytes(buf))
+    c2 = state.read(SEEDBYTES)
+    for i in range(SEEDBYTES):
+        if c[i] != c2[i]:
+            return -1
+    
+    return 0
