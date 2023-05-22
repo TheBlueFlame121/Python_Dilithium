@@ -275,3 +275,34 @@ def crypto_sign_verify(sig: List[int], siglen:int, m:List[int], mlen:int, pk:Lis
             return -1
     
     return 0
+
+
+#################################################
+# Name:        crypto_sign_open
+#
+# Description: Verify signed message.
+#
+# Arguments:   - List[int] m:  output message (allocated
+#                              array with smlen bytes), can be equal to sm
+#              - int mlen:     output length of message (UNUSED)
+#              - List[int] sm: signed message
+#              - int smlen:    length of signed message (UNUSED)
+#              - List[int] pk: bit-packed public key
+#
+# Returns 0 if signed message could be verified correctly and -1 otherwise
+##################################################
+def crypto_sign_open(m:List[int], mlen:int, sm:List[int], smlen:int, pk:List[int]) -> int:
+    while True:
+        if len(sm) < CRYPTO_BYTES:
+            break
+
+        mlen = len(sm) - CRYPTO_BYTES
+        if crypto_sign_verify(sm[:CRYPTO_BYTES], CRYPTO_BYTES, sm[CRYPTO_BYTES:], mlen, pk):
+            break
+        else:
+            for i in range(mlen):
+                m[i] = sm[CRYPTO_BYTES + i]
+            return 0
+    for i in range(len(m)):
+        m[i] = 0
+    return -1
