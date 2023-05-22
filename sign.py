@@ -72,11 +72,11 @@ def crypto_sign_keypair(pk:List[int], sk:List[int]) -> int:
 #
 # Description: Computes signature.
 #
-# Arguments:   - uint8_t *sig:   pointer to output signature (of length CRYPTO_BYTES)
-#              - size_t *siglen: pointer to output length of signature
-#              - uint8_t *m:     pointer to message to be signed
-#              - size_t mlen:    length of message
-#              - uint8_t *sk:    pointer to bit-packed secret key
+# Arguments:   - List[int] sig:   pointer to output signature (of length CRYPTO_BYTES)
+#              - int siglen:      pointer to output length of signature (UNUSED)
+#              - List[int] m:     pointer to message to be signed
+#              - int mlen:        length of message (UNUSED)
+#              - List[int] sk:    pointer to bit-packed secret key
 #
 # Returns 0 (success)
 ##################################################
