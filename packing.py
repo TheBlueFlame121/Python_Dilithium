@@ -161,7 +161,7 @@ def pack_sig(sig:List[int], c:List[int], z:polyvecl, h:polyveck):
                 sig[start+k] = j
                 k += 1
     
-    sig[start+OMEGA+K] = k
+        sig[start+OMEGA+i] = k
 
 
 #################################################
