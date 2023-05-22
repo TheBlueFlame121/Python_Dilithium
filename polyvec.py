@@ -324,7 +324,7 @@ def polyveck_power2round(v1:polyveck, v0:polyveck, v:polyveck):
 #              - polyveck v: input vector
 ##################################################
 def polyveck_decompose(v1:polyveck, v0:polyveck, v:polyveck):
-    for i in range(N):
+    for i in range(K):
         poly_decompose(v1.vec[i], v0.vec[i], v.vec[i])
 
 
@@ -364,4 +364,7 @@ def polyveck_use_hint(w:polyveck, u:polyveck, h:polyveck):
 
 def polyveck_pack_w1(r:List[int], w1:polyveck):
     for i in range(K):
-        polyw1_pack(r[i*POLYW1_PACKEDBYTES:], w1.vec[i])
+        temp = [0]*POLYW1_PACKEDBYTES
+        polyw1_pack(temp, w1.vec[i])
+        for j in range(POLYW1_PACKEDBYTES):
+            r[i*POLYW1_PACKEDBYTES+j] = temp[j]
