@@ -34,7 +34,7 @@ elif DILITHIUM_MODE == 5:
     TAU = 60
     BETA = 120
     GAMMA1 = (1 << 19)
-    GAMMA2 = ((Q-1)/32)
+    GAMMA2 = ((Q-1)//32)
     OMEGA = 75
 
 POLYT1_PACKEDBYTES = 320
