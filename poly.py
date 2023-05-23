@@ -219,8 +219,8 @@ def poly_chknorm(a: poly, B: int) -> int:
         t = a.coeffs[i] >> 31
         t = a.coeffs[i] - (t & 2*a.coeffs[i])
 
-    if t >= B:
-        return 1
+        if t >= B:
+            return 1
 
     return 0
 
