@@ -17,10 +17,12 @@ from fips202 import *
 #                              of CRYPTO_PUBLICKEYBYTES bytes)
 #              - List[int] sk: output private key (allocated array
 #                              of CRYPTO_SECRETKEYBYTES bytes)
+#              - bytes det:    optional seed for testing, uses system
+#                              randomness if not provided
 #
 # Returns 0 (success)
 ##################################################
-def crypto_sign_keypair(pk:List[int], sk:List[int]) -> int:
+def crypto_sign_keypair(pk:List[int], sk:List[int], det:bytes=None) -> int:
     # seedbuf = [0]*(2*SEEDBYTES+CRHBYTES)
     # tr = [0]*SEEDBYTES
     mat = [polyvecl() for _ in range(K)]
@@ -31,7 +33,10 @@ def crypto_sign_keypair(pk:List[int], sk:List[int]) -> int:
     t0 = polyveck()
 
     # Get randomness for rho, rhoprime and key
-    seedbuf = shake256(urandom(SEEDBYTES), 2*SEEDBYTES + CRHBYTES)
+    if det is None:
+        det = urandom(SEEDBYTES)
+    assert len(det) == SEEDBYTES
+    seedbuf = shake256(det, 2*SEEDBYTES + CRHBYTES)
     rho = list(seedbuf[:SEEDBYTES])
     rhoprime = list(seedbuf[SEEDBYTES:SEEDBYTES+CRHBYTES])
     key = list(seedbuf[-SEEDBYTES:])
