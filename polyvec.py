@@ -8,11 +8,11 @@ class polyvecl:
 
     def __init__(self, inp: list[poly] = None):
         if inp is None:
-            inp = [poly() for _ in range(L)]
-        if len(inp) > L:
+            inp = [poly() for _ in range(g.L)]
+        if len(inp) > g.L:
             raise ValueError("Polynomial Vector L can't have more than L polys")
-        if len(inp) < L:
-            inp = inp + [poly() for _ in range(L-len(inp))].copy()
+        if len(inp) < g.L:
+            inp = inp + [poly() for _ in range(g.L-len(inp))].copy()
         self.vec = inp
 
 
@@ -21,11 +21,11 @@ class polyveck:
 
     def __init__(self, inp: list[poly] = None):
         if inp is None:
-            inp = [poly() for _ in range(K)]
-        if len(inp) > K:
+            inp = [poly() for _ in range(g.K)]
+        if len(inp) > g.K:
             raise ValueError("Polynomial Vector K can't have more than K polys")
-        if len(inp) < K:
-            inp = inp + [poly() for _ in range(K-len(inp))].copy()
+        if len(inp) < g.K:
+            inp = inp + [poly() for _ in range(g.K-len(inp))].copy()
         self.vec = inp
 
 #################################################
@@ -40,13 +40,13 @@ class polyveck:
 #              - List[int] rho: byte array containing seed rho
 ##################################################
 def polyvec_matrix_expand(mat: List[polyvecl], rho: List[int]):
-    for i in range(K):
-        for j in range(L):
+    for i in range(g.K):
+        for j in range(g.L):
             poly_uniform(mat[i].vec[j], bytes(rho), (i<<8) + j)
 
 
 def polyvec_matrix_pointwise_montgomery(t:polyveck, mat:List[polyvecl], v:polyvecl):
-    for i in range(K):
+    for i in range(g.K):
         polyvecl_pointwise_acc_montgomery(t.vec[i], mat[i], v)
 
 
@@ -55,18 +55,18 @@ def polyvec_matrix_pointwise_montgomery(t:polyveck, mat:List[polyvecl], v:polyve
 ##############################################################
 
 def polyvecl_uniform_eta(v:polyvecl, seed:List[int], nonce:int):
-    for i in range(L):
+    for i in range(g.L):
         poly_uniform_eta(v.vec[i], seed, nonce)
         nonce+=1
 
 
 def polyvecl_uniform_gamma1(v: polyvecl, seed:List[int], nonce:int):
-    for i in range(L):
-        poly_uniform_gamma1(v.vec[i], seed, L*nonce+i)
+    for i in range(g.L):
+        poly_uniform_gamma1(v.vec[i], seed, g.L*nonce+i)
 
 
 def polyvecl_reduce(v:polyvecl):
-    for i in range(L):
+    for i in range(g.L):
         poly_reduce(v.vec[i])
 
 
@@ -81,7 +81,7 @@ def polyvecl_reduce(v:polyvecl):
 #              - polyvecl v: second summand
 ##################################################
 def polyvecl_add(w:polyvecl, u:polyvecl, v:polyvecl):
-    for i in range(L):
+    for i in range(g.L):
         poly_add(w.vec[i], u.vec[i], v.vec[i])
 
 
@@ -94,7 +94,7 @@ def polyvecl_add(w:polyvecl, u:polyvecl, v:polyvecl):
 # Arguments:   - polyvecl v: input/output vector
 ##################################################
 def polyvecl_ntt(v:polyvecl):
-    for i in range(L):
+    for i in range(g.L):
         poly_ntt(v.vec[i])
 
 
@@ -108,12 +108,12 @@ def polyvecl_ntt(v:polyvecl):
 # Arguments:   - polyvecl *v: pointer to input/output vector
 ##################################################
 def polyvecl_invntt_tomont(v:polyvecl):
-    for i in range(L):
+    for i in range(g.L):
         poly_invntt_tomont(v.vec[i])
 
 
 def polyvecl_pointwise_poly_montgomery(r:polyvecl, a:poly, v:polyvecl):
-    for i in range(L):
+    for i in range(g.L):
         poly_pointwise_montgomery(r.vec[i], a, v.vec[i])
 
 
@@ -131,7 +131,7 @@ def polyvecl_pointwise_poly_montgomery(r:polyvecl, a:poly, v:polyvecl):
 def polyvecl_pointwise_acc_montgomery(w:poly, u:polyvecl, v:polyvecl):
     t = poly()
     poly_pointwise_montgomery(w, u.vec[0], v.vec[0])
-    for i in range(1, L):
+    for i in range(1, g.L):
         poly_pointwise_montgomery(t, u.vec[i], v.vec[i])
         poly_add(w, w, t)
 
@@ -149,7 +149,7 @@ def polyvecl_pointwise_acc_montgomery(w:poly, u:polyvecl, v:polyvecl):
 # and 1 otherwise.
 ##################################################
 def polyvecl_chknorm(v:polyvecl, bound:int) -> int:
-    for i in range(L):
+    for i in range(g.L):
         if poly_chknorm(v.vec[i], bound):
             return 1
 
@@ -162,7 +162,7 @@ def polyvecl_chknorm(v:polyvecl, bound:int) -> int:
 
 
 def polyveck_uniform_eta(v:polyveck, seed:List[int], nonce:int):
-    for i in range(K):
+    for i in range(g.K):
         poly_uniform_eta(v.vec[i], seed, nonce)
         nonce+=1
 
@@ -176,7 +176,7 @@ def polyveck_uniform_eta(v:polyveck, seed:List[int], nonce:int):
 # Arguments:   - polyveck v: input/output vector
 ##################################################
 def polyveck_reduce(v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_reduce(v.vec[i])
 
 
@@ -189,7 +189,7 @@ def polyveck_reduce(v:polyveck):
 # Arguments:   - polyveck v: input/output vector
 ##################################################
 def polyveck_caddq(v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_caddq(v.vec[i])
 
 
@@ -204,7 +204,7 @@ def polyveck_caddq(v:polyveck):
 #              - polyveck v: second summand
 ##################################################
 def polyveck_add(w:polyveck, u:polyveck, v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_add(w.vec[i], u.vec[i], v.vec[i])
 
 
@@ -220,7 +220,7 @@ def polyveck_add(w:polyveck, u:polyveck, v:polyveck):
 #                                   subtracted from first input vector
 ##################################################
 def polyveck_sub(w:polyveck, u:polyveck, v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_sub(w.vec[i], u.vec[i], v.vec[i])
 
 
@@ -233,7 +233,7 @@ def polyveck_sub(w:polyveck, u:polyveck, v:polyveck):
 # Arguments:   - polyveck v: input/output vector
 ##################################################
 def polyveck_shiftl(v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_shiftl(v.vec[i])
 
 
@@ -246,7 +246,7 @@ def polyveck_shiftl(v:polyveck):
 # Arguments:   - polyveck v: input/output vector
 ##################################################
 def polyveck_ntt(v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_ntt(v.vec[i])
 
 
@@ -260,12 +260,12 @@ def polyveck_ntt(v:polyveck):
 # Arguments:   - polyveck v: input/output vector
 ##################################################
 def polyveck_invntt_tomont(v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_invntt_tomont(v.vec[i])
 
 
 def polyveck_pointwise_poly_montgomery(r:polyveck, a:poly, v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_pointwise_montgomery(r.vec[i], a, v.vec[i])
 
 
@@ -282,7 +282,7 @@ def polyveck_pointwise_poly_montgomery(r:polyveck, a:poly, v:polyveck):
 # and 1 otherwise.
 ##################################################
 def polyveck_chknorm(v:polyveck, bound:int) -> int:
-    for i in range(K):
+    for i in range(g.K):
         if poly_chknorm(v.vec[i], bound):
             return 1
 
@@ -304,7 +304,7 @@ def polyveck_chknorm(v:polyveck, bound:int) -> int:
 #              - polyveck v: input vector
 ##################################################
 def polyveck_power2round(v1:polyveck, v0:polyveck, v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_power2round(v1.vec[i], v0.vec[i], v.vec[i])
 
 
@@ -324,7 +324,7 @@ def polyveck_power2round(v1:polyveck, v0:polyveck, v:polyveck):
 #              - polyveck v: input vector
 ##################################################
 def polyveck_decompose(v1:polyveck, v0:polyveck, v:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_decompose(v1.vec[i], v0.vec[i], v.vec[i])
 
 
@@ -341,7 +341,7 @@ def polyveck_decompose(v1:polyveck, v0:polyveck, v:polyveck):
 ##################################################
 def polyveck_make_hint(h:polyveck, v0:polyveck, v1:polyveck):
     s = 0
-    for i in range(K):
+    for i in range(g.K):
         s += poly_make_hint(h.vec[i], v0.vec[i], v1.vec[i])
 
     return s
@@ -358,13 +358,13 @@ def polyveck_make_hint(h:polyveck, v0:polyveck, v1:polyveck):
 #              - polyveck *h: input hint vector
 ##################################################
 def polyveck_use_hint(w:polyveck, u:polyveck, h:polyveck):
-    for i in range(K):
+    for i in range(g.K):
         poly_use_hint(w.vec[i], u.vec[i], h.vec[i])
 
 
 def polyveck_pack_w1(r:List[int], w1:polyveck):
-    for i in range(K):
-        temp = [0]*POLYW1_PACKEDBYTES
+    for i in range(g.K):
+        temp = [0]*g.POLYW1_PACKEDBYTES
         polyw1_pack(temp, w1.vec[i])
-        for j in range(POLYW1_PACKEDBYTES):
-            r[i*POLYW1_PACKEDBYTES+j] = temp[j]
+        for j in range(g.POLYW1_PACKEDBYTES):
+            r[i*g.POLYW1_PACKEDBYTES+j] = temp[j]

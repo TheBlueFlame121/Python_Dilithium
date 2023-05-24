@@ -18,10 +18,10 @@ QINV = 58728449 # q^(-1) mod 2^32
 ##################################################
 def montgomery_reduce(a:int) -> int:
     t = (a*QINV)%(2**32)
-    t = (a - t*Q) >> 32
-    t += Q
-    if t > (Q>>1):
-        t -= Q
+    t = (a - t*g.Q) >> 32
+    t += g.Q
+    if t > (g.Q>>1):
+        t -= g.Q
     return t
 
 
@@ -37,7 +37,7 @@ def montgomery_reduce(a:int) -> int:
 ##################################################
 def reduce32(a:int) -> int:
     t = (a + (1 << 22)) >> 23
-    t = a - t*Q
+    t = a - t*g.Q
     return t
 
 
@@ -51,7 +51,7 @@ def reduce32(a:int) -> int:
 # Returns r.
 ##################################################
 def caddq(a:int) -> int:
-    a += (a >> 31) & Q
+    a += (a >> 31) & g.Q
     return a
 
 

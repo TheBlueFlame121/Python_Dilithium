@@ -13,9 +13,9 @@ from params import *
 #
 # Returns a0, a1.
 #################################################
-def power2round(a: int) -> (int, int):
-    a1 = (a+ (1 << (D-1)) -1) >> D
-    a0 = a - (a1 << D)
+def power2round(a: int) -> tuple[int, int]:
+    a1 = (a+ (1 << (g.D-1)) -1) >> g.D
+    a0 = a - (a1 << g.D)
     return a0, a1
 
 
@@ -32,18 +32,18 @@ def power2round(a: int) -> (int, int):
 #
 # Returns a0, a1.
 #################################################
-def decompose(a: int) -> (int, int):
+def decompose(a: int) -> tuple[int, int]:
     a1 = (a+127) >> 7;
 
-    if GAMMA2 == (Q-1)/32:
+    if g.GAMMA2 == (g.Q-1)/32:
         a1 = (a1*1025 + (1 << 21)) >> 22
         a1 &= 15
-    elif GAMMA2 == (Q-1)/88:
+    elif g.GAMMA2 == (g.Q-1)/88:
         a1  = (a1*11275 + (1 << 23)) >> 24
         a1 ^= ((43 - a1) >> 31) & a1
 
-    a0 = a - a1*2*GAMMA2;
-    a0 -= (((Q-1)//2 - a0) >> 31) & Q
+    a0 = a - a1*2*g.GAMMA2;
+    a0 -= (((g.Q-1)//2 - a0) >> 31) & g.Q
 
     return a0, a1
 
@@ -60,7 +60,7 @@ def decompose(a: int) -> (int, int):
 # Returns 1 if overflow.
 #################################################
 def make_hint(a0: int, a1: int) -> bool:
-    if(a0>GAMMA2 or a0<-GAMMA2 or (a0==-GAMMA2 and a1!=0)):
+    if(a0>g.GAMMA2 or a0<-g.GAMMA2 or (a0==-g.GAMMA2 and a1!=0)):
         return True
     return False
 
@@ -81,12 +81,12 @@ def use_hint(a: int, hint: int) -> int:
     if hint == 0:
         return a1;
 
-    if GAMMA2 == (Q-1)/32:
+    if g.GAMMA2 == (g.Q-1)/32:
         if a0 > 0:
             return (a1 + 1) & 15
         else:
             return (a1 - 1) & 15
-    elif GAMMA2 == (Q-1)/88:
+    elif g.GAMMA2 == (g.Q-1)/88:
         if a0 > 0:
             if a1 == 43:
                 return 0

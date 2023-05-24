@@ -52,7 +52,7 @@ def ntt(a:List[int]) -> List[int]:
     l = 128
     while l > 0:
         start = 0
-        while start < N:
+        while start < g.N:
             k += 1
             zeta = zetas[k]
             for j in range(start, start+l):
@@ -80,9 +80,9 @@ def invntt_tomont(a: List[int]) -> List[int]:
 
     k = 256
     l = 1
-    while l < N:
+    while l < g.N:
         start = 0
-        while start < N:
+        while start < g.N:
             k -= 1
             zeta = -zetas[k]
             for j in range(start, start + l):
@@ -92,7 +92,7 @@ def invntt_tomont(a: List[int]) -> List[int]:
                 a[j+l] = montgomery_reduce(zeta*a[j+l])
             start = j + l + 1
         l <<= 1
-    for j in range(0, N):
+    for j in range(0, g.N):
         a[j] = montgomery_reduce(f*a[j])
 
     return a

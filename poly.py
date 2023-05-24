@@ -1,5 +1,4 @@
 # Contains elements from poly.h and poly.c
-from dataclasses import dataclass
 from params import *
 from ntt import *
 from reduce import *
@@ -12,11 +11,11 @@ class poly:
 
     def __init__(self, inp: list[int] = None):
         if inp is None:
-            inp = [0 for _ in range(N)]
-        if len(inp) > N:
+            inp = [0 for _ in range(g.N)]
+        if len(inp) > g.N:
             raise ValueError("Polynomial can't have more than N coeffs")
-        if len(inp) < N:
-            inp = inp + [0 for _ in range(N-len(inp))].copy()
+        if len(inp) < g.N:
+            inp = inp + [0 for _ in range(g.N-len(inp))].copy()
         self.coeffs = inp
 
 
@@ -29,7 +28,7 @@ class poly:
 # Arguments:   - poly a: input/output polynomial
 ##################################################
 def poly_reduce(a: poly):
-    for i in range(N):
+    for i in range(g.N):
         a.coeffs[i] = reduce32(a.coeffs[i])
 
 
@@ -42,7 +41,7 @@ def poly_reduce(a: poly):
 # Arguments:   - poly a: input/output polynomial
 ##################################################
 def poly_caddq(a: poly):
-    for i in range(N):
+    for i in range(g.N):
         a.coeffs[i] = caddq(a.coeffs[i])
 
 
@@ -56,7 +55,7 @@ def poly_caddq(a: poly):
 #              - poly b: second summand
 ##################################################
 def poly_add(c: poly, a: poly, b: poly):
-    for i in range(N):
+    for i in range(g.N):
         c.coeffs[i] = a.coeffs[i] + b.coeffs[i]
 
 
@@ -72,7 +71,7 @@ def poly_add(c: poly, a: poly, b: poly):
 #                           subtraced from first input polynomial
 ##################################################
 def poly_sub(c: poly, a: poly, b: poly):
-    for i in range(N):
+    for i in range(g.N):
         c.coeffs[i] = a.coeffs[i] - b.coeffs[i]
 
 
@@ -85,8 +84,8 @@ def poly_sub(c: poly, a: poly, b: poly):
 # Arguments:   - poly a: input/output polynomial
 ##################################################
 def poly_shiftl(a: poly):
-    for i in range(N):
-        a.coeffs[i] <<= D
+    for i in range(g.N):
+        a.coeffs[i] <<= g.D
 
 
 #################################################
@@ -126,7 +125,7 @@ def poly_invntt_tomont(a: poly):
 #              - poly b: second input polynomial
 ##################################################
 def poly_pointwise_montgomery(c: poly, a: poly, b: poly):
-    for i in range(N):
+    for i in range(g.N):
         c.coeffs[i] = montgomery_reduce(a.coeffs[i] * b.coeffs[i])
 
 
@@ -143,7 +142,7 @@ def poly_pointwise_montgomery(c: poly, a: poly, b: poly):
 #              - poly a: input polynomial
 ##################################################
 def poly_power2round(a1: poly, a0: poly, a: poly):
-    for i in range(N):
+    for i in range(g.N):
         a0.coeffs[i], a1.coeffs[i] = power2round(a.coeffs[i])
 
 
@@ -161,7 +160,7 @@ def poly_power2round(a1: poly, a0: poly, a: poly):
 #              - poly a: input polynomial
 ##################################################
 def poly_decompose(a1: poly, a0: poly, a: poly):
-    for i in range(N):
+    for i in range(g.N):
         a0.coeffs[i], a1.coeffs[i] = decompose(a.coeffs[i])
 
 
@@ -180,7 +179,7 @@ def poly_decompose(a1: poly, a0: poly, a: poly):
 ##################################################
 def poly_make_hint(h: poly, a0: poly, a1: poly):
     s = 0
-    for i in range(N):
+    for i in range(g.N):
         h.coeffs[i] = int(make_hint(a0.coeffs[i], a1.coeffs[i]))
         s += h.coeffs[i]
     return s
@@ -196,7 +195,7 @@ def poly_make_hint(h: poly, a0: poly, a1: poly):
 #              - poly h: input hint polynomial
 ##################################################
 def poly_use_hint(b: poly, a: poly, h:poly):
-    for i in range(N):
+    for i in range(g.N):
         b.coeffs[i] = use_hint(a.coeffs[i], h.coeffs[i])
 
 
@@ -212,10 +211,10 @@ def poly_use_hint(b: poly, a: poly, h:poly):
 # Returns 0 if norm is strictly smaller than B <= (Q-1)/8 and 1 otherwise.
 ##################################################
 def poly_chknorm(a: poly, B: int) -> int:
-    if B > (Q-1)//8:
+    if B > (g.Q-1)//8:
         return 1
 
-    for i in range(N):
+    for i in range(g.N):
         t = a.coeffs[i] >> 31
         t = a.coeffs[i] - (t & 2*a.coeffs[i])
 
@@ -250,7 +249,7 @@ def rej_uniform(a:List[int], l:int, buf: List[int], buflen:int) -> int:
         pos+=1
         t &= 0x7FFFFF
 
-        if t< Q:
+        if t< g.Q:
             a[ctr] = t
             ctr += 1
     return ctr
@@ -276,18 +275,18 @@ def poly_uniform(a: poly, seed: bytes, nonce: int):
     stream128_init(state, seed, nonce)
     buf = stream128_squeezeblocks(POLY_UNIFORM_NBLOCKS, state)
 
-    ctr = rej_uniform(a.coeffs, N, buf, buflen)
+    ctr = rej_uniform(a.coeffs, g.N, buf, buflen)
 
-    while ctr < N:
+    while ctr < g.N:
         off = buflen % 3
         for i in range(off):
             buf[i] = buf[buflen - off + i]
 
         buf = buf[:off] + stream128_squeezeblocks(1, state)
         buflen = STREAM128_BLOCKBYTES + off;
-        temp = [0]*(N-ctr)
-        ctr_temp = rej_uniform(temp, N-ctr, buf, buflen)
-        for i in range(N-ctr):
+        temp = [0]*(g.N-ctr)
+        ctr_temp = rej_uniform(temp, g.N-ctr, buf, buflen)
+        for i in range(g.N-ctr):
             a.coeffs[ctr+i] = temp[i]
         ctr+=ctr_temp
 
@@ -314,7 +313,7 @@ def rej_eta(a:List[int], l:int, buf:List[int], buflen:int) -> int:
         t1 = buf[pos] >> 4
         pos+=1
 
-        if ETA == 2:
+        if g.ETA == 2:
             if t0<15:
                 t0 = t0 - (205*t0 >> 10)*5
                 a[ctr] = 2-t0
@@ -323,7 +322,7 @@ def rej_eta(a:List[int], l:int, buf:List[int], buflen:int) -> int:
                 t1 = t1 - (205*t1 >> 10)*5
                 a[ctr] = 2- t1
                 ctr += 1
-        elif ETA == 4:
+        elif g.ETA == 4:
             if t0<9:
                 a[ctr] = 4 - t0
                 ctr += 1
@@ -344,25 +343,25 @@ def rej_eta(a:List[int], l:int, buf:List[int], buflen:int) -> int:
 #              - List[int] seed: byte array with seed of length CRHBYTES
 #              - int nonce: 2-byte nonce
 ##################################################
-if ETA == 2:
-    POLY_UNIFORM_ETA_NBLOCKS = ((136 + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
-elif ETA == 4:
-    POLY_UNIFORM_ETA_NBLOCKS = ((227 + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
+# if g.ETA == 2:
+#     g.POLY_UNIFORM_ETA_NBLOCKS = ((136 + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
+# elif g.ETA == 4:
+#     g.POLY_UNIFORM_ETA_NBLOCKS = ((227 + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
 def poly_uniform_eta(a:poly, seed:List[int], nonce:int):
-    buflen = POLY_UNIFORM_ETA_NBLOCKS*STREAM256_BLOCKBYTES
-    buf = [0]*(POLY_UNIFORM_ETA_NBLOCKS*STREAM256_BLOCKBYTES)
+    buflen = g.POLY_UNIFORM_ETA_NBLOCKS*STREAM256_BLOCKBYTES
+    buf = [0]*(g.POLY_UNIFORM_ETA_NBLOCKS*STREAM256_BLOCKBYTES)
     state = stream256_state()
 
     stream256_init(state, bytes(seed), nonce)
-    buf = stream256_squeezeblocks(POLY_UNIFORM_ETA_NBLOCKS, state)
+    buf = stream256_squeezeblocks(g.POLY_UNIFORM_ETA_NBLOCKS, state)
 
-    ctr = rej_eta(a.coeffs, N, buf, buflen)
+    ctr = rej_eta(a.coeffs, g.N, buf, buflen)
 
-    while ctr<N:
+    while ctr<g.N:
         buf = stream256_squeezeblocks(1, state) 
-        temp = [0]*(N-ctr)
-        ctr_temp = rej_eta(temp, N-ctr, buf, STREAM256_BLOCKBYTES)
-        for i in range(N-ctr):
+        temp = [0]*(g.N-ctr)
+        ctr_temp = rej_eta(temp, g.N-ctr, buf, STREAM256_BLOCKBYTES)
+        for i in range(g.N-ctr):
             a.coeffs[ctr+i] = temp[i]
         ctr+=ctr_temp
 
@@ -378,13 +377,13 @@ def poly_uniform_eta(a:poly, seed:List[int], nonce:int):
 #              - List[int] seed: byte array with seed of length CRHBYTES
 #              - int nonce: 16-bit nonce
 ##################################################
-POLY_UNIFORM_GAMMA1_NBLOCKS = ((POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
+# g.POLY_UNIFORM_GAMMA1_NBLOCKS = ((g.POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1)//STREAM256_BLOCKBYTES)
 def poly_uniform_gamma1(a:poly, seed:List[int], nonce:int):
-    buf = [0]*(POLY_UNIFORM_GAMMA1_NBLOCKS*STREAM256_BLOCKBYTES)
+    buf = [0]*(g.POLY_UNIFORM_GAMMA1_NBLOCKS*STREAM256_BLOCKBYTES)
     state = stream256_state()
 
     stream256_init(state, bytes(seed), nonce)
-    buf = stream256_squeezeblocks(POLY_UNIFORM_GAMMA1_NBLOCKS, state)
+    buf = stream256_squeezeblocks(g.POLY_UNIFORM_GAMMA1_NBLOCKS, state)
     polyz_unpack(a, buf)
 
 
@@ -410,9 +409,9 @@ def poly_challenge(c:poly, seed:List[int]):
         signs |= buf[i] << 8*i
     pos = 8
 
-    for i in range(N):
+    for i in range(g.N):
         c.coeffs[i] = 0
-    for i in range(N-TAU, N):
+    for i in range(g.N-g.TAU, g.N):
         temp = 1; b = 0 # To simulate a do while loop
         while temp == 1 or b > i:
             temp = 0
@@ -440,24 +439,24 @@ def poly_challenge(c:poly, seed:List[int]):
 def polyeta_pack(r:List[int], a:poly):
     t = [0]*8
 
-    if ETA == 2:
-        for i in range(N//8):
-            t[0] = ETA - a.coeffs[8*i+0]
-            t[1] = ETA - a.coeffs[8*i+1]
-            t[2] = ETA - a.coeffs[8*i+2]
-            t[3] = ETA - a.coeffs[8*i+3]
-            t[4] = ETA - a.coeffs[8*i+4]
-            t[5] = ETA - a.coeffs[8*i+5]
-            t[6] = ETA - a.coeffs[8*i+6]
-            t[7] = ETA - a.coeffs[8*i+7]
+    if g.ETA == 2:
+        for i in range(g.N//8):
+            t[0] = g.ETA - a.coeffs[8*i+0]
+            t[1] = g.ETA - a.coeffs[8*i+1]
+            t[2] = g.ETA - a.coeffs[8*i+2]
+            t[3] = g.ETA - a.coeffs[8*i+3]
+            t[4] = g.ETA - a.coeffs[8*i+4]
+            t[5] = g.ETA - a.coeffs[8*i+5]
+            t[6] = g.ETA - a.coeffs[8*i+6]
+            t[7] = g.ETA - a.coeffs[8*i+7]
 
             r[3*i+0]  = ((t[0] >> 0) | (t[1] << 3) | (t[2] << 6)) & 255
             r[3*i+1]  = ((t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7)) & 255
             r[3*i+2]  = ((t[5] >> 1) | (t[6] << 2) | (t[7] << 5)) & 255
-    elif ETA == 4:
-        for i in range(N//2):
-            t[0] = ETA - a.coeffs[2*i+0]
-            t[1] = ETA - a.coeffs[2*i+1]
+    elif g.ETA == 4:
+        for i in range(g.N//2):
+            t[0] = g.ETA - a.coeffs[2*i+0]
+            t[1] = g.ETA - a.coeffs[2*i+1]
             r[i] = (t[0] | (t[1] << 4)) & 255
 
 
@@ -470,8 +469,8 @@ def polyeta_pack(r:List[int], a:poly):
 #              - List[int] a: byte array with bit-packed polynomial
 ##################################################
 def polyeta_unpack(r:poly, a:List[int]):
-    if ETA == 2:
-        for i in range(N//8):
+    if g.ETA == 2:
+        for i in range(g.N//8):
             r.coeffs[8*i+0] =  (a[3*i+0] >> 0) & 7
             r.coeffs[8*i+1] =  (a[3*i+0] >> 3) & 7
             r.coeffs[8*i+2] = ((a[3*i+0] >> 6) | (a[3*i+1] << 2)) & 7
@@ -481,20 +480,20 @@ def polyeta_unpack(r:poly, a:List[int]):
             r.coeffs[8*i+6] =  (a[3*i+2] >> 2) & 7
             r.coeffs[8*i+7] =  (a[3*i+2] >> 5) & 7
 
-            r.coeffs[8*i+0] = ETA - r.coeffs[8*i+0]
-            r.coeffs[8*i+1] = ETA - r.coeffs[8*i+1]
-            r.coeffs[8*i+2] = ETA - r.coeffs[8*i+2]
-            r.coeffs[8*i+3] = ETA - r.coeffs[8*i+3]
-            r.coeffs[8*i+4] = ETA - r.coeffs[8*i+4]
-            r.coeffs[8*i+5] = ETA - r.coeffs[8*i+5]
-            r.coeffs[8*i+6] = ETA - r.coeffs[8*i+6]
-            r.coeffs[8*i+7] = ETA - r.coeffs[8*i+7]
-    elif ETA == 4:
-        for i in range(N//2):
+            r.coeffs[8*i+0] = g.ETA - r.coeffs[8*i+0]
+            r.coeffs[8*i+1] = g.ETA - r.coeffs[8*i+1]
+            r.coeffs[8*i+2] = g.ETA - r.coeffs[8*i+2]
+            r.coeffs[8*i+3] = g.ETA - r.coeffs[8*i+3]
+            r.coeffs[8*i+4] = g.ETA - r.coeffs[8*i+4]
+            r.coeffs[8*i+5] = g.ETA - r.coeffs[8*i+5]
+            r.coeffs[8*i+6] = g.ETA - r.coeffs[8*i+6]
+            r.coeffs[8*i+7] = g.ETA - r.coeffs[8*i+7]
+    elif g.ETA == 4:
+        for i in range(g.N//2):
             r.coeffs[2*i+0] = a[i] & 0x0F
             r.coeffs[2*i+1] = a[i] >> 4
-            r.coeffs[2*i+0] = ETA - r.coeffs[2*i+0]
-            r.coeffs[2*i+1] = ETA - r.coeffs[2*i+1]
+            r.coeffs[2*i+0] = g.ETA - r.coeffs[2*i+0]
+            r.coeffs[2*i+1] = g.ETA - r.coeffs[2*i+1]
 
 
 #################################################
@@ -508,7 +507,7 @@ def polyeta_unpack(r:poly, a:List[int]):
 #              - poly a: input polynomial
 ##################################################
 def polyt1_pack(r:List[int], a:poly):
-    for i in range(N//4):
+    for i in range(g.N//4):
         r[5*i+0] = ((a.coeffs[4*i+0] >> 0)) & 255
         r[5*i+1] = ((a.coeffs[4*i+0] >> 8) | (a.coeffs[4*i+1] << 2)) & 255
         r[5*i+2] = ((a.coeffs[4*i+1] >> 6) | (a.coeffs[4*i+2] << 4)) & 255
@@ -526,7 +525,7 @@ def polyt1_pack(r:List[int], a:poly):
 #              - List[int] a: byte array with bit-packed polynomial
 ##################################################
 def polyt1_unpack(r:poly, a:List[int]):
-    for i in range(N//4):
+    for i in range(g.N//4):
         r.coeffs[4*i+0] = ((a[5*i+0] >> 0) | (a[5*i+1] << 8)) & 0x3FF
         r.coeffs[4*i+1] = ((a[5*i+1] >> 2) | (a[5*i+2] << 6)) & 0x3FF
         r.coeffs[4*i+2] = ((a[5*i+2] >> 4) | (a[5*i+3] << 4)) & 0x3FF
@@ -544,15 +543,15 @@ def polyt1_unpack(r:poly, a:List[int]):
 ##################################################
 def polyt0_pack(r:List[int], a:poly):
     t = [0]*8
-    for i in range(N//8):
-        t[0] = (1 << (D-1)) - a.coeffs[8*i+0]
-        t[1] = (1 << (D-1)) - a.coeffs[8*i+1]
-        t[2] = (1 << (D-1)) - a.coeffs[8*i+2]
-        t[3] = (1 << (D-1)) - a.coeffs[8*i+3]
-        t[4] = (1 << (D-1)) - a.coeffs[8*i+4]
-        t[5] = (1 << (D-1)) - a.coeffs[8*i+5]
-        t[6] = (1 << (D-1)) - a.coeffs[8*i+6]
-        t[7] = (1 << (D-1)) - a.coeffs[8*i+7]
+    for i in range(g.N//8):
+        t[0] = (1 << (g.D-1)) - a.coeffs[8*i+0]
+        t[1] = (1 << (g.D-1)) - a.coeffs[8*i+1]
+        t[2] = (1 << (g.D-1)) - a.coeffs[8*i+2]
+        t[3] = (1 << (g.D-1)) - a.coeffs[8*i+3]
+        t[4] = (1 << (g.D-1)) - a.coeffs[8*i+4]
+        t[5] = (1 << (g.D-1)) - a.coeffs[8*i+5]
+        t[6] = (1 << (g.D-1)) - a.coeffs[8*i+6]
+        t[7] = (1 << (g.D-1)) - a.coeffs[8*i+7]
 
         r[13*i+ 0]  =  t[0] & 255
         r[13*i+ 1]  =  t[0] >>  8 & 255
@@ -585,7 +584,7 @@ def polyt0_pack(r:List[int], a:poly):
 #              - List[int] a: byte array with bit-packed polynomial
 ##################################################
 def polyt0_unpack(r:poly, a:List[int]):
-    for i in range(N//8):
+    for i in range(g.N//8):
         r.coeffs[8*i+0]  = a[13*i+0]
         r.coeffs[8*i+0] |= a[13*i+1] << 8
         r.coeffs[8*i+0] &= 0x1FFF
@@ -622,14 +621,14 @@ def polyt0_unpack(r:poly, a:List[int]):
         r.coeffs[8*i+7] |= a[13*i+12] << 5
         r.coeffs[8*i+7] &= 0x1FFF
 
-        r.coeffs[8*i+0] = (1 << (D-1)) - r.coeffs[8*i+0]
-        r.coeffs[8*i+1] = (1 << (D-1)) - r.coeffs[8*i+1]
-        r.coeffs[8*i+2] = (1 << (D-1)) - r.coeffs[8*i+2]
-        r.coeffs[8*i+3] = (1 << (D-1)) - r.coeffs[8*i+3]
-        r.coeffs[8*i+4] = (1 << (D-1)) - r.coeffs[8*i+4]
-        r.coeffs[8*i+5] = (1 << (D-1)) - r.coeffs[8*i+5]
-        r.coeffs[8*i+6] = (1 << (D-1)) - r.coeffs[8*i+6]
-        r.coeffs[8*i+7] = (1 << (D-1)) - r.coeffs[8*i+7]
+        r.coeffs[8*i+0] = (1 << (g.D-1)) - r.coeffs[8*i+0]
+        r.coeffs[8*i+1] = (1 << (g.D-1)) - r.coeffs[8*i+1]
+        r.coeffs[8*i+2] = (1 << (g.D-1)) - r.coeffs[8*i+2]
+        r.coeffs[8*i+3] = (1 << (g.D-1)) - r.coeffs[8*i+3]
+        r.coeffs[8*i+4] = (1 << (g.D-1)) - r.coeffs[8*i+4]
+        r.coeffs[8*i+5] = (1 << (g.D-1)) - r.coeffs[8*i+5]
+        r.coeffs[8*i+6] = (1 << (g.D-1)) - r.coeffs[8*i+6]
+        r.coeffs[8*i+7] = (1 << (g.D-1)) - r.coeffs[8*i+7]
 
 
 #################################################
@@ -645,12 +644,12 @@ def polyt0_unpack(r:poly, a:List[int]):
 def polyz_pack(r:List[int], a:poly):
     t = [0]*4
 
-    if GAMMA1 == (1 << 17):
-        for i in range(N//4):
-            t[0] = GAMMA1 - a.coeffs[4*i+0]
-            t[1] = GAMMA1 - a.coeffs[4*i+1]
-            t[2] = GAMMA1 - a.coeffs[4*i+2]
-            t[3] = GAMMA1 - a.coeffs[4*i+3]
+    if g.GAMMA1 == (1 << 17):
+        for i in range(g.N//4):
+            t[0] = g.GAMMA1 - a.coeffs[4*i+0]
+            t[1] = g.GAMMA1 - a.coeffs[4*i+1]
+            t[2] = g.GAMMA1 - a.coeffs[4*i+2]
+            t[3] = g.GAMMA1 - a.coeffs[4*i+3]
 
             r[9*i+0]  = t[0] & 255
             r[9*i+1]  = t[0] >> 8  & 255
@@ -664,10 +663,10 @@ def polyz_pack(r:List[int], a:poly):
             r[9*i+6] |= t[3] << 6  & 255
             r[9*i+7]  = t[3] >> 2  & 255
             r[9*i+8]  = t[3] >> 10 & 255
-    elif GAMMA1 == (1 << 19):
-        for i in range(N//2):
-            t[0] = GAMMA1 - a.coeffs[2*i+0]
-            t[1] = GAMMA1 - a.coeffs[2*i+1]
+    elif g.GAMMA1 == (1 << 19):
+        for i in range(g.N//2):
+            t[0] = g.GAMMA1 - a.coeffs[2*i+0]
+            t[1] = g.GAMMA1 - a.coeffs[2*i+1]
 
             r[5*i+0]  = t[0] & 255
             r[5*i+1]  = t[0] >> 8  & 255
@@ -687,8 +686,8 @@ def polyz_pack(r:List[int], a:poly):
 #              - List[int] a: byte array with bit-packed polynomial
 ##################################################
 def polyz_unpack(r:poly, a:List[int]):
-    if GAMMA1 == (1 << 17):
-        for i in range(N//4):
+    if g.GAMMA1 == (1 << 17):
+        for i in range(g.N//4):
             r.coeffs[4*i+0]  = a[9*i+0]
             r.coeffs[4*i+0] |= a[9*i+1] << 8
             r.coeffs[4*i+0] |= a[9*i+2] << 16
@@ -709,12 +708,12 @@ def polyz_unpack(r:poly, a:List[int]):
             r.coeffs[4*i+3] |= a[9*i+8] << 10
             r.coeffs[4*i+3] &= 0x3FFFF
 
-            r.coeffs[4*i+0] = GAMMA1 - r.coeffs[4*i+0]
-            r.coeffs[4*i+1] = GAMMA1 - r.coeffs[4*i+1]
-            r.coeffs[4*i+2] = GAMMA1 - r.coeffs[4*i+2]
-            r.coeffs[4*i+3] = GAMMA1 - r.coeffs[4*i+3]
-    elif GAMMA1 == (1 << 19):
-        for i in range(N//2):
+            r.coeffs[4*i+0] = g.GAMMA1 - r.coeffs[4*i+0]
+            r.coeffs[4*i+1] = g.GAMMA1 - r.coeffs[4*i+1]
+            r.coeffs[4*i+2] = g.GAMMA1 - r.coeffs[4*i+2]
+            r.coeffs[4*i+3] = g.GAMMA1 - r.coeffs[4*i+3]
+    elif g.GAMMA1 == (1 << 19):
+        for i in range(g.N//2):
             r.coeffs[2*i+0]  = a[5*i+0]
             r.coeffs[2*i+0] |= a[5*i+1] << 8
             r.coeffs[2*i+0] |= a[5*i+2] << 16
@@ -725,8 +724,8 @@ def polyz_unpack(r:poly, a:List[int]):
             r.coeffs[2*i+1] |= a[5*i+4] << 12
             r.coeffs[2*i+0] &= 0xFFFFF
 
-            r.coeffs[2*i+0] = GAMMA1 - r.coeffs[2*i+0]
-            r.coeffs[2*i+1] = GAMMA1 - r.coeffs[2*i+1]
+            r.coeffs[2*i+0] = g.GAMMA1 - r.coeffs[2*i+0]
+            r.coeffs[2*i+1] = g.GAMMA1 - r.coeffs[2*i+1]
 
 
 #################################################
@@ -740,14 +739,14 @@ def polyz_unpack(r:poly, a:List[int]):
 #              - poly a: input polynomial
 ##################################################
 def polyw1_pack(r:List[int], a:poly):
-    if GAMMA2 == (Q-1)/88:
-        for i in range(N//4):
+    if g.GAMMA2 == (g.Q-1)/88:
+        for i in range(g.N//4):
             r[3*i+0]  = a.coeffs[4*i+0] & 255
             r[3*i+0] |= a.coeffs[4*i+1] << 6 & 255
             r[3*i+1]  = a.coeffs[4*i+1] >> 2 & 255
             r[3*i+1] |= a.coeffs[4*i+2] << 4 & 255
             r[3*i+2]  = a.coeffs[4*i+2] >> 4 & 255
             r[3*i+2] |= a.coeffs[4*i+3] << 2 & 255
-    elif GAMMA2 == (Q-1)/32:
-        for i in range(N//2):
+    elif g.GAMMA2 == (g.Q-1)/32:
+        for i in range(g.N//2):
             r[i] = (a.coeffs[2*i+0] | (a.coeffs[2*i+1] << 4)) & 255
