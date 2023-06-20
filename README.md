@@ -74,10 +74,10 @@ The key generation algorithm `crypto_sign_keypair` accepts an additional argumen
 
 Because everyone needs numbers:
 
-| 500 Iterations            | Mode 2 | Mode 3 | Mode 5 |
-|---------------------------|--------|--------|--------|
-| key generation            | 0.013s | 0.019s | 0.03 s |
-| signing 32 byte message   | 0.323s | 0.224s | 0.309s |
-| verifying 32 byte message | 0.015s | 0.022s | 0.034s |
+| 500 Iterations            | Mode 2  | Mode 3  | Mode 5 |
+|---------------------------|---------|---------|--------|
+| key generation            |  4.246s |  6.572s | 10.254s|
+| signing 32 byte message   | 36.167s | 123.96s | 38.728s|
+| verifying 32 byte message |  5.624s |  8.454s | 12.63s |
 
 The data was generated using ['benchmark.py'](benchmark.py). Note that the signing times are volatile due to rejection sampling. The test was done on an i7-10750H laptop cpu.
